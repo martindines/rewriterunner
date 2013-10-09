@@ -4,12 +4,12 @@ import sys, os
 
 def success_message(message):
     # http://en.wikipedia.org/wiki/Tick_(check_mark)
-    tick = unichr(2714)
+    tick = u"\u2714"
     print '[' + tick + '] ' + message
 
 def error_message(message):
     # http://en.wikipedia.org/wiki/X_mark
-    cross = unichr(2718)
+    cross = u"\u2718"
     print '[' + cross + '] ' + message
 
 def info():
