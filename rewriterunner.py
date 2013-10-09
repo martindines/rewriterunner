@@ -45,9 +45,48 @@ class htaccess:
         success_message('Extracted %d lines of data' % len(self.contents))
 
     def isRewriteEngineOn(self):
-        regex = re.compile('RewriteEngine\s*[o|O]n')
+        regex = re.compile('^RewriteEngine\s*[o|O]n$')
         return [match.group(0) for line in self.contents for match in [regex.search(line)] if match]
 
+    def processUrl(self, url):
+        currentRewriteCond = None
+        currentRewriteRule = None
+        currentRewriteCondMatch = False
+        currentRewriteRuleMatch = False
+
+        for line in self.contents:
+            rewriteConditionRegex = re.compile('^RewriteCond\s*([^\s]+)\s*([^\s]+)$')
+            rewriteConditionMatch = rewriteConditionRegex.search(line)
+
+            if rewriteConditionMatch:
+                currentRewriteCond = rewriteConditionMatch
+                currentRewriteCondMatch = False
+                continue
+
+            if currentRewriteCond:
+                TestString = currentRewriteCond.group(1)
+                CondPattern = currentRewriteCond.group(2)
+
+                # @todo Write remaining TestString cases
+                if TestString == '%{QUERY_STRING}':
+                    # Test if url contains QUERY_STRING
+                    queryStringRegex = re.compile('\?(.*)')
+                    queryStringMatch = queryStringRegex.search(url)
+                    if queryStringMatch:
+                        # Test if url contains QUERY_STRING condition
+                        condPatternRegex = re.compile(CondPattern)
+                        condPatternMatch = condPatternRegex.search(queryStringMatch.group(1))
+                        if condPatternMatch:
+                            currentRewriteCondMatch = True
+                            success_message('Matched RewriteCond: %s %s' % (TestString, CondPattern))
+
+            if (not currentRewriteCond) or (currentRewriteCond and currentRewriteCondMatch):
+                rewriteRuleRegex = re.compile('^RewriteRule\s*([^\s]+)\s*([^\s]+)\s*([^\s]+)$')
+                rewriteRuleMatch = rewriteRuleRegex.search(line)
+
+                if rewriteRuleMatch:
+                    currentRewriteRule = rewriteRuleMatch
+                    print rewriteRuleMatch.group(0)
 
 def main(argv):
     if not argv:
@@ -66,6 +105,8 @@ def main(argv):
             success_message('RewriteEngine On')
         else:
             error_message('RewriteEngine Off (or not found)')
+
+        htaccessObj.processUrl(url)
 
 
 if __name__ == '__main__':
