@@ -45,7 +45,7 @@ class htaccess:
         success_message('Extracted %d lines of data' % len(self.contents))
 
     def isRewriteEngineOn(self):
-        regex = re.compile('RewriteEndgine\s*[o|O]n')
+        regex = re.compile('RewriteEngine\s*[o|O]n')
         return [match.group(0) for line in self.contents for match in [regex.search(line)] if match]
 
 
