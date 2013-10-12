@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import sys, os, re
+import sys, os, re, urlparse
 
 def success_message(message):
     # http://en.wikipedia.org/wiki/Tick_(check_mark)
@@ -54,6 +54,8 @@ class htaccess:
         currentRewriteCondMatch = False
         currentRewriteRuleMatch = False
 
+        urlPath = urlparse.urlparse(url)
+
         for line in self.contents:
             rewriteConditionRegex = re.compile('^RewriteCond\s*([^\s]+)\s*([^\s]+)$')
             rewriteConditionMatch = rewriteConditionRegex.search(line)
@@ -86,7 +88,16 @@ class htaccess:
 
                 if rewriteRuleMatch:
                     currentRewriteRule = rewriteRuleMatch
-                    print rewriteRuleMatch.group(0)
+                    rewriteRulePattern = rewriteRuleMatch.group(1)
+                    rewriteRuleOutput = rewriteRuleMatch.group(2)
+                    rewriteRuleFlags = rewriteRuleMatch.group(3)
+
+                    rewriteRulePatternRegex = re.compile(rewriteRulePattern)
+                    rewriteRulePatternMatch = rewriteRulePatternRegex.search(urlPath.path[1:])
+
+                    if rewriteRulePatternMatch:
+                        success_message('Matched RewriteRule: %s' % (rewriteRulePattern))
+                        print 'Output and rules: %s %s' % (rewriteRuleOutput, rewriteRuleFlags)
 
 def main(argv):
     if not argv:
